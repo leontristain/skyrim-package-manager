@@ -1,0 +1,12 @@
+*.pyc
+*.swo
+*.swp
+.cache
+.eggs*
+*egg-info
+.pytest_cache*
+venv
+vim*
+test_project
+docs/_build
+/test_project*
