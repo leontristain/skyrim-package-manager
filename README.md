@@ -1,0 +1,1 @@
+# skyrim-package-manager
