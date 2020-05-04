@@ -47,3 +47,11 @@ def copy_file(src, dest):
         os.link(src, dest)
     except OSError:
         shutil.copyfile(src, dest)
+
+
+class ReadOnlyDictDataAttribute:
+    def __init__(self, attr):
+        self.attr = attr
+
+    def __get__(self, obj, type=None):
+        return obj.data[self.attr]

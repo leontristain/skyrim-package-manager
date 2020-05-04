@@ -10,6 +10,7 @@ def cli():
 
 @cli.command('gui')
 @click.argument('packages_folder')
-def gui(packages_folder):
-    skypackages_gui = SkyPackagesGui(packages_folder)
+@click.argument('api_key')
+def gui(packages_folder, api_key):
+    skypackages_gui = SkyPackagesGui(packages_folder, api_key)
     skypackages_gui.run()

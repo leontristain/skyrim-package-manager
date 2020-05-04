@@ -24,7 +24,7 @@ class SkybuildPackageManager:
     def __init__(self, root):
         self.root = Path(root)
         self.paths = SkybuildPackagesPaths(self.root)
-        self.aliases = SkybuildAliases(self.root.aliases)
+        self.aliases = SkybuildAliases(self.paths.aliases)
 
     def add_source(self, alias, source):
         # download the source

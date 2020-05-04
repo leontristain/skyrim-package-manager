@@ -10,3 +10,4 @@ vim*
 test_project
 docs/_build
 /test_project*
+/test.py
