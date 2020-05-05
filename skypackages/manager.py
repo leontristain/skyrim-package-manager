@@ -5,6 +5,7 @@ from pathlib import Path
 from skypackages.utils import (
     compute_file_md5,
     copy_file,
+    create_shortcut,
     yaml_dump,
     yaml_load)
 
@@ -49,9 +50,9 @@ class SkybuildPackageManager:
             copy_file(file_path, blob)
 
         view_path = (
-            self.paths.view / f'{file_name.stem}-{md5[:8]}{file_name.suffix}')
-        if not view_path.exists:
-            view_path.symlink_to(blob.relative_to(view_path))
+            self.paths.view / f'{file_name.stem}-{md5[:8]}{file_name.suffix}.lnk')
+        if not view_path.exists():
+            create_shortcut(blob, view_path)
 
         # save source details
         source.save_details(blob_id, self.paths.sources)

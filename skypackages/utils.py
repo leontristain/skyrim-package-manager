@@ -4,6 +4,7 @@ from pathlib import Path
 import requests
 import shutil
 from tqdm import tqdm
+from win32com.client import Dispatch
 import yaml
 
 
@@ -49,6 +50,21 @@ def copy_file(src, dest):
         os.link(src, dest)
     except OSError:
         shutil.copyfile(src, dest)
+
+
+def create_shortcut(target, shortcut):
+    target = Path(target)
+    assert target.exists(), f'target {target} does not exist'
+    target = target.resolve()
+    shortcut = Path(shortcut)
+    if shortcut.suffix != '.lnk':
+        shortcut = shortcut.parent / f'{shortcut.name}.lnk'
+
+    shell = Dispatch('WScript.Shell')
+    shortcut = shell.CreateShortCut(str(shortcut))
+    shortcut.TargetPath = str(target)
+    shortcut.WorkingDirectory = str(target.parent)
+    shortcut.save()
 
 
 class ReadOnlyDictDataAttribute:
