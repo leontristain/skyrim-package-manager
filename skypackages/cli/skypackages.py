@@ -1,4 +1,5 @@
 import click
+from pathlib import Path
 
 from skypackages.ui.gui import SkyPackagesGui
 
@@ -12,5 +13,6 @@ def cli():
 @click.argument('packages_folder')
 @click.argument('api_key')
 def gui(packages_folder, api_key):
-    skypackages_gui = SkyPackagesGui(packages_folder, api_key)
+    skypackages_gui = SkyPackagesGui(
+        Path(packages_folder).resolve(), api_key)
     skypackages_gui.run()

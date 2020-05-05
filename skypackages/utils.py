@@ -1,7 +1,9 @@
 import hashlib
 import os
 from pathlib import Path
+import requests
 import shutil
+from tqdm import tqdm
 import yaml
 
 
@@ -50,8 +52,25 @@ def copy_file(src, dest):
 
 
 class ReadOnlyDictDataAttribute:
-    def __init__(self, attr):
+    def __init__(self, attr, postprocess=None):
         self.attr = attr
+        self.postprocess = postprocess
 
     def __get__(self, obj, type=None):
-        return obj.data[self.attr]
+        value = obj.data[self.attr]
+        return self.postprocess(value) if self.postprocess else value
+
+
+def download_url(url, output_path):
+    response = requests.get(url, stream=True)
+    total_size = int(response.headers.get('content-length', 0))
+    block_size = 1024  # 1 kilobyte
+    with tqdm(total=total_size, unit='iB', unit_scale=True) as t:
+        with open(output_path, 'wb') as f:
+            for data in response.iter_content(block_size):
+                t.update(len(data))
+                f.write(data)
+    if total_size != 0:
+        assert t.n == total_size, (
+            f'response is nonzero yet progress bar result is not total_size; '
+            f'something is wrong: {t.n} {total_size}')

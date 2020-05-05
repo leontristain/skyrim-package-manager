@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -13,65 +14,81 @@ class SkybuildPackagesPaths:
     root: Path
 
     def __post_init__(self):
-        self.packages = self.root / 'packages'
+        self.blobs = self.root / 'blobs'
         self.aliases = self.root / 'aliases'
         self.sources = self.root / 'sources'
         self.view = self.root / 'view'
         self.tmp = self.root / 'tmp'
+        self.download_cache = self.root / 'download_cache'
+
+    def create_all(self):
+        self.blobs.mkdir(parents=True, exist_ok=True)
+        self.aliases.mkdir(parents=True, exist_ok=True)
+        self.sources.mkdir(parents=True, exist_ok=True)
+        self.view.mkdir(parents=True, exist_ok=True)
+        self.tmp.mkdir(parents=True, exist_ok=True)
+        self.download_cache.mkdir(parents=True, exist_ok=True)
 
 
 class SkybuildPackageManager:
     def __init__(self, root):
         self.root = Path(root)
         self.paths = SkybuildPackagesPaths(self.root)
+        self.paths.create_all()
         self.aliases = SkybuildAliases(self.paths.aliases)
 
-    def add_source(self, alias, source):
-        # download the source
-        downloaded_file = source.download(dest=self.tmp)
-        assert downloaded_file.name == source.file_name
-        assert downloaded_file.bytes == source.bytes
+    def add_source(self, alias, source, file_path):
+        source.validate(file_path)
 
         # import into folder and create view
-        md5 = compute_file_md5(downloaded_file)
-        package_file = self.paths.packages / f'{md5}{source.file_name}'
-        if not package_file.exists():
-            copy_file(downloaded_file, package_file)
+        file_name = Path(source.file_name)
+        md5 = compute_file_md5(file_path)
+        blob_id = f'{md5}{file_name.suffix}'
+        blob = self.paths.blobs / blob_id
+        if not blob.exists():
+            copy_file(file_path, blob)
 
-        view_path = self.view / (
-            f'{source.file_name.stem}-{md5[:8]}{source.file_name.suffix}')
+        view_path = (
+            self.paths.view / f'{file_name.stem}-{md5[:8]}{file_name.suffix}')
         if not view_path.exists:
-            view_path.symlink_to(package_file.relative_to(view_path))
+            view_path.symlink_to(blob.relative_to(view_path))
 
         # save source details
-        source.save_details(md5)
+        source.save_details(blob_id, self.paths.sources)
 
         # apply aliases
-        self.aliases.add(alias, md5)
-        self.aliases.save()
+        self.aliases.add(alias, blob_id)
 
 
-class SkybuildAliases(dict):
+class SkybuildAliases:
     def __init__(self, root):
         self.root = Path(root)
         self.file_path = self.root / 'aliases.yaml'
+
+    @contextmanager
+    def session(self, read_only=False):
         if self.file_path.exists():
-            self.load()
+            data = yaml_load(self.file_path.read_text())
+        else:
+            data = {}
+        yield data
+        if not read_only:
+            self.file_path.write_text(yaml_dump(data))
 
-    def add(self, alias, md5):
-        self.setdefault(alias, set()).add(md5)
+    @property
+    def data(self):
+        with self.session(read_only=True) as aliases_data:
+            return aliases_data
 
-    def remove(self, alias, md5):
-        if alias in self and md5 in self[alias]:
-            self[alias].remove(md5)
-            if not self[alias]:
-                self.pop(alias)
+    def add(self, alias, blob_id):
+        with self.session() as data:
+            blob_ids = data.setdefault(alias, [])
+            if blob_id not in blob_ids:
+                blob_ids.append(blob_id)
 
-    def load(self):
-        for alias, md5s in yaml_load(self.file_path.read_text()).items():
-            for md5 in md5s:
-                self.add(md5)
-
-    def save(self):
-        self.file_path.write_text(yaml_dump(
-            {alias: sorted(md5s) for alias, md5s in self.items()}))
+    def remove(self, alias, blob_id):
+        with self.session() as data:
+            if alias in data and blob_id in data[alias]:
+                data[alias].remove(blob_id)
+                if not data[alias]:
+                    data.pop(alias)

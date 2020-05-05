@@ -7,7 +7,12 @@ from pynxm import Nexus
 from urllib.parse import urlparse
 
 from skypackages.sources.nexus import NexusPackageSource
-from skypackages.utils import ReadOnlyDictDataAttribute
+from skypackages.utils import (
+    compute_file_md5,
+    download_url,
+    ReadOnlyDictDataAttribute,
+    yaml_dump,
+    yaml_load)
 
 
 @dataclass
@@ -86,9 +91,9 @@ class NexusMod:
     @property
     def file_list(self):
         return [
-            NexusModFile(self.api, self.game_id, self.mod_id, data)
+            NexusModFile(self.api, self.game, self.mod_id, data)
             for data in self.api.mod_file_list(
-                self.game_id, self.mod_id)['files']
+                self.game, self.mod_id)['files']
             if data['category_name']
         ]
 
@@ -102,8 +107,8 @@ class NexusModFile:
 
     file_id = ReadOnlyDictDataAttribute('file_id')
     name = ReadOnlyDictDataAttribute('name')
-    version = ReadOnlyDictDataAttribute('name')
-    category_id = ReadOnlyDictDataAttribute('name')
+    version = ReadOnlyDictDataAttribute('version')
+    category_id = ReadOnlyDictDataAttribute('category_id')
     category_name = ReadOnlyDictDataAttribute('category_name')
     is_primary = ReadOnlyDictDataAttribute('is_primary')
     size = ReadOnlyDictDataAttribute('size')
@@ -112,7 +117,7 @@ class NexusModFile:
     uploaded_time = ReadOnlyDictDataAttribute('uploaded_time')
     mod_version = ReadOnlyDictDataAttribute('mod_version')
     external_virus_scan_url = ReadOnlyDictDataAttribute('external_virus_scan_url')
-    description = ReadOnlyDictDataAttribute('description')
+    description = ReadOnlyDictDataAttribute('description', postprocess=html.unescape)
     size_kb = ReadOnlyDictDataAttribute('size_kb')
     changelog_html = ReadOnlyDictDataAttribute('changelog_html')
     content_preview_link = ReadOnlyDictDataAttribute('content_preview_link')
@@ -130,3 +135,55 @@ class NexusModFile:
             info['short_name']: info['URI']
             for info in self.api.mod_file_download_link(
                     self.game, self.mod_id, self.file_id)}
+
+    def download_into(self, folder):
+        folder = Path(folder)
+        index_file = folder / 'nexus_download_index.yaml'
+        if index_file.exists():
+            index = yaml_load(index_file.read_text())
+        else:
+            index = {}
+
+        key = (
+            f'{self.file_id} '
+            f'{self.file_name} '
+            f'{self.version} '
+            f'{self.uploaded_timestamp}')
+
+        existing = index.get(key)
+        if existing:
+            file_name = existing.get('file_name')
+            md5 = existing.get('md5')
+            if (file_name and md5 and
+                    (folder / file_name).exists() and
+                    compute_file_md5(folder / file_name) == md5):
+                assert int(
+                    (folder / file_name).stat().st_size / 1024) == self.size, (
+                        'found in cache but size mismatch')
+                return folder / file_name
+
+        target = folder / self.file_name
+        if target.exists():
+            target.unlink()
+
+        links = self.generate_download_links()
+        assert links, f'no download links for {self}'
+
+        default_server = 'Nexus CDN'
+        preferred_server = 'Los Angeles'
+        if preferred_server in links:
+            link = links[preferred_server]
+        elif default_server in links:
+            link = links[default_server]
+        else:
+            link = list(links.values())[0]
+
+        assert not target.exists(), f'{target} unexpectedly exists'
+        download_url(link, target)
+        assert target.exists(), f'{target} still does not exist after download'
+
+        md5 = compute_file_md5(target)
+        index[key] = {'file_name': self.file_name, 'md5': md5}
+        index_file.write_text(yaml_dump(index))
+
+        return target
