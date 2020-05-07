@@ -48,7 +48,7 @@
                 </sizepolicy>
                </property>
                <property name="title">
-                <string>Packages</string>
+                <string>Aliases</string>
                </property>
                <layout class="QGridLayout" name="gridLayout">
                 <item row="0" column="0">
@@ -115,7 +115,7 @@
                 </size>
                </property>
                <property name="title">
-                <string>Tarballs</string>
+                <string>Blobs</string>
                </property>
                <layout class="QGridLayout" name="gridLayout_2">
                 <item row="0" column="0">
@@ -162,7 +162,7 @@
                <item row="0" column="0">
                 <widget class="QTabWidget" name="SourcesTabs">
                  <property name="currentIndex">
-                  <number>0</number>
+                  <number>1</number>
                  </property>
                  <widget class="QWidget" name="NexusSourcesTab">
                   <attribute name="title">
@@ -282,7 +282,7 @@
                      </property>
                      <layout class="QGridLayout" name="gridLayout_5">
                       <item row="0" column="0">
-                       <widget class="QTableView" name="tableView">
+                       <widget class="QTableView" name="GenericFileMetadataTable">
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
                           <horstretch>0</horstretch>
@@ -295,7 +295,7 @@
                     </widget>
                    </item>
                    <item row="0" column="0">
-                    <widget class="QPushButton" name="pushButton">
+                    <widget class="QPushButton" name="GenericFileSelectButton">
                      <property name="text">
                       <string>Select File</string>
                      </property>
@@ -308,7 +308,7 @@
                      </property>
                      <layout class="QGridLayout" name="gridLayout_6">
                       <item row="0" column="0">
-                       <widget class="QTextEdit" name="textEdit"/>
+                       <widget class="QTextEdit" name="GenericFileNotes"/>
                       </item>
                      </layout>
                     </widget>
