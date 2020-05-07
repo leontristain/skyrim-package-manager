@@ -57,7 +57,7 @@
                    <string>Packages</string>
                   </property>
                   <layout class="QGridLayout" name="gridLayout">
-                   <item row="0" column="0">
+                   <item row="1" column="0">
                     <widget class="QListWidget" name="AliasesList">
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
@@ -66,6 +66,9 @@
                       </sizepolicy>
                      </property>
                     </widget>
+                   </item>
+                   <item row="0" column="0">
+                    <widget class="QLineEdit" name="AliasesFilter"/>
                    </item>
                   </layout>
                  </widget>

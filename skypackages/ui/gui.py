@@ -1,4 +1,5 @@
 from enum import Enum
+import fnmatch
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPalette, QColor, QCursor
@@ -82,6 +83,7 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
 
     def ensure_gui_elements(self):
         expected = [
+            'AliasesFilter',
             'AliasesList',
             'BlobsList',
             'SourcesList',
@@ -110,6 +112,9 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
         self.NexusAvailableFiles.customContextMenuRequested.connect(
             self.nexus_file_context_menu)
 
+        self.AliasesFilter.textEdited.connect(
+            self.aliases_filter_changed)
+
         self.AliasesList.itemSelectionChanged.connect(
             self.alias_selection_changed)
 
@@ -121,6 +126,9 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
 
         self.SourcesList.itemDoubleClicked.connect(
             self.source_activated)
+
+    def aliases_filter_changed(self, text):
+        self.render_aliases()
 
     def source_activated(self, item):
         source = item.data(Qt.UserRole)
@@ -145,7 +153,10 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
     def render_aliases(self):
         self.AliasesList.clear()
         aliases = self.manager.aliases.data
+        pattern = self.AliasesFilter.text() + '*'
         for alias, blob_ids in sorted(aliases.items()):
+            if pattern and not fnmatch.fnmatch(alias, pattern):
+                continue
             list_item = QListWidgetItem()
             list_item.setText(alias)
             list_item.setData(Qt.UserRole, blob_ids)
