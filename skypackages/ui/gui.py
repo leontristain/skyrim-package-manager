@@ -27,6 +27,13 @@ class NexusDownloadPostActions(Enum):
     diff_with_selected = 2
 
 
+class AliasSortMode(Enum):
+    by_name_asc = 0
+    by_name_desc = 1
+    by_time_asc = 2
+    by_time_desc = 3
+
+
 class SkyPackagesGui(QtWidgets.QMainWindow):
     def __init__(self, project_folder, nexus_api_key):
         self.project_folder = Path(project_folder)
@@ -38,6 +45,7 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
         self.manager = None
         self.refresh_manager()
 
+        self.alias_sort_mode = AliasSortMode.by_name_asc
         self.current_nexus_mod = None
         self.current_selected_alias = None
         self.current_selected_blob = None
@@ -115,6 +123,9 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
         self.AliasesFilter.textEdited.connect(
             self.aliases_filter_changed)
 
+        self.AliasesSortMode.activated.connect(
+            self.aliases_sort_mode_changed)
+
         self.AliasesList.itemSelectionChanged.connect(
             self.alias_selection_changed)
 
@@ -131,6 +142,10 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
             self.source_activated)
 
     def aliases_filter_changed(self, text):
+        self.render_aliases()
+
+    def aliases_sort_mode_changed(self, index):
+        self.alias_sort_mode = AliasSortMode(index)
         self.render_aliases()
 
     def source_activated(self, item):
@@ -171,7 +186,28 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
         self.AliasesList.clear()
         aliases = self.manager.aliases.data
         pattern = self.AliasesFilter.text() + '*'
-        for alias, blob_ids in sorted(aliases.items()):
+
+        def sort_by_name(item):
+            alias, _ = item
+            return alias
+
+        def sort_by_time(item):
+            alias, _ = item
+            return (
+                self.manager.paths.blobs /
+                self.manager.aliases.get_selection(alias)).stat().st_mtime
+
+        sort_key, sort_reverse = {
+            AliasSortMode.by_name_asc: (sort_by_name, False),
+            AliasSortMode.by_name_desc: (sort_by_name, True),
+            AliasSortMode.by_time_asc: (sort_by_time, False),
+            AliasSortMode.by_time_desc: (sort_by_time, True)
+        }[self.alias_sort_mode]
+
+        for alias, blob_ids in sorted(
+                aliases.items(),
+                key=sort_key,
+                reverse=sort_reverse):
             if pattern and not fnmatch.fnmatch(alias, pattern):
                 continue
             list_item = QListWidgetItem()

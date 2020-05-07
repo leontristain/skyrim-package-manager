@@ -88,21 +88,22 @@ class SkybuildSources:
 class SkybuildAliases:
     def __init__(self, root):
         self.root = Path(root)
-        self.file_path = self.root / 'aliases.yaml'
+        self.aliases_file = self.root / 'aliases.yaml'
+        self.selection_file = self.root / 'selection.yaml'
 
     @contextmanager
-    def session(self, read_only=False):
-        if self.file_path.exists():
-            data = yaml_load(self.file_path.read_text())
+    def session(self, file_, read_only=False):
+        if file_.exists():
+            data = yaml_load(file_.read_text())
         else:
             data = {}
         yield data
         if not read_only:
-            self.file_path.write_text(yaml_dump(data))
+            file_.write_text(yaml_dump(data))
 
     @property
     def data(self):
-        with self.session(read_only=True) as aliases_data:
+        with self.session(self.aliases_file, read_only=True) as aliases_data:
             return aliases_data
 
     def add(self, alias, blob_id):
@@ -112,7 +113,7 @@ class SkybuildAliases:
                 blob_ids.append(blob_id)
 
     def rename(self, old_alias, new_alias):
-        with self.session() as data:
+        with self.session(self.aliases_file) as data:
             if old_alias not in data:
                 raise Exception(
                     f'cannot rename {old_alias} to {new_alias}; {old_alias} '
@@ -124,8 +125,46 @@ class SkybuildAliases:
             data[new_alias] = data.pop(old_alias)
 
     def remove(self, alias, blob_id):
-        with self.session() as data:
+        with self.session(self.aliases_file) as data:
             if alias in data and blob_id in data[alias]:
                 data[alias].remove(blob_id)
                 if not data[alias]:
                     data.pop(alias)
+
+    def get_selections(self):
+        all_selections = {}
+        with (
+            self.session(self.aliases_file, read_only=True),
+            self.session(self.selection_file, read_only=True)) as (
+                aliases, selection):
+            for alias, blob_ids in aliases.items():
+                selected = None
+                if alias in selection:
+                    selected = selection[alias]
+                elif len(blob_ids) == 1:
+                    selected = blob_ids[0]
+                if not selected:
+                    raise Exception(
+                        f'alias {alias} does not have a valid selection')
+        return all_selections
+
+    def get_selection(self, alias):
+        with self.session(self.selection_file, read_only=True) as selection:
+            if alias in selection:
+                return selection['alias']
+        with self.session(self.aliases_file, read_only=True) as aliases:
+            if alias in aliases:
+                blob_ids = aliases[alias]
+                if len(blob_ids) == 1:
+                    return blob_ids[0]
+
+    def set_selection(self, alias, blob_id):
+        with self.session(self.aliases_file, read_only=True) as aliases:
+            if alias not in aliases or blob_id not in aliases[alias]:
+                raise Exception(
+                    f'cannot set selection for alias {alias} to be blob_id '
+                    f'{blob_id}; alias does not exist or does not contain '
+                    f'the blob_id')
+
+        with self.session(self.selection_file) as selection:
+            selection[alias] = blob_id
