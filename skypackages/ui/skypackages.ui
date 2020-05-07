@@ -26,302 +26,293 @@
        </attribute>
        <layout class="QGridLayout" name="gridLayout_9">
         <item row="0" column="0">
-         <widget class="QGroupBox" name="PackageBrowserGroupBox">
-          <property name="title">
-           <string/>
+         <widget class="QSplitter" name="PackagesAndSourcesHSplitter">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
           </property>
-          <layout class="QGridLayout" name="gridLayout_7">
-           <item row="0" column="0">
-            <widget class="QSplitter" name="PackagesAndSourcesHSplitter">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <widget class="QSplitter" name="LeftPaneVSplitter">
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-              <widget class="QGroupBox" name="PackagesGroupBox">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="title">
-                <string>Aliases</string>
-               </property>
-               <layout class="QGridLayout" name="gridLayout">
-                <item row="0" column="0">
-                 <layout class="QVBoxLayout" name="verticalLayout_2">
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout">
-                    <item>
-                     <widget class="QLineEdit" name="AliasesFilter"/>
-                    </item>
-                    <item>
-                     <widget class="QComboBox" name="AliasesSortMode">
-                      <item>
-                       <property name="text">
-                        <string>Sort A-Z [ASC]</string>
-                       </property>
-                      </item>
-                      <item>
-                       <property name="text">
-                        <string>Sort A-Z [DESC]</string>
-                       </property>
-                      </item>
-                      <item>
-                       <property name="text">
-                        <string>Sort By Time [ASC]</string>
-                       </property>
-                      </item>
-                      <item>
-                       <property name="text">
-                        <string>Sort By Time [DESC]</string>
-                       </property>
-                      </item>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
-                   <widget class="QListWidget" name="AliasesList">
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
+          <widget class="QSplitter" name="LeftPaneVSplitter">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <widget class="QGroupBox" name="PackagesGroupBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="title">
+             <string>Aliases</string>
+            </property>
+            <layout class="QGridLayout" name="gridLayout">
+             <item row="0" column="0">
+              <layout class="QVBoxLayout" name="verticalLayout_2">
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout">
+                 <item>
+                  <widget class="QLineEdit" name="AliasesFilter"/>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="AliasesSortMode">
+                   <item>
+                    <property name="text">
+                     <string>Sort A-Z [ASC]</string>
                     </property>
-                    <property name="editTriggers">
-                     <set>QAbstractItemView::DoubleClicked</set>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Sort A-Z [DESC]</string>
                     </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-               </layout>
-              </widget>
-              <widget class="QGroupBox" name="TarballsGroupBox">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>16777213</height>
-                </size>
-               </property>
-               <property name="title">
-                <string>Blobs</string>
-               </property>
-               <layout class="QGridLayout" name="gridLayout_2">
-                <item row="0" column="0">
-                 <widget class="QListWidget" name="BlobsList">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </widget>
-              <widget class="QGroupBox" name="SourcesGroupBox">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="title">
-                <string>Sources</string>
-               </property>
-               <layout class="QGridLayout" name="gridLayout_3">
-                <item row="0" column="0">
-                 <widget class="QListWidget" name="SourcesList">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </widget>
-             </widget>
-             <widget class="QGroupBox" name="SourcesAreaGroupBox_3">
-              <property name="title">
-               <string>Info Browser</string>
-              </property>
-              <layout class="QGridLayout" name="gridLayout_8">
-               <item row="0" column="0">
-                <widget class="QTabWidget" name="SourcesTabs">
-                 <property name="currentIndex">
-                  <number>1</number>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Sort By Time [ASC]</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Sort By Time [DESC]</string>
+                    </property>
+                   </item>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QListWidget" name="AliasesList">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
                  </property>
-                 <widget class="QWidget" name="NexusSourcesTab">
-                  <attribute name="title">
-                   <string>NexusMods</string>
-                  </attribute>
-                  <layout class="QGridLayout" name="gridLayout_10">
-                   <item row="0" column="0">
-                    <widget class="QGroupBox" name="NexusInfo">
+                 <property name="editTriggers">
+                  <set>QAbstractItemView::DoubleClicked</set>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+           <widget class="QGroupBox" name="TarballsGroupBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>16777213</height>
+             </size>
+            </property>
+            <property name="title">
+             <string>Blobs</string>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_2">
+             <item row="0" column="0">
+              <widget class="QListWidget" name="BlobsList">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+           <widget class="QGroupBox" name="SourcesGroupBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="title">
+             <string>Sources</string>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_3">
+             <item row="0" column="0">
+              <widget class="QListWidget" name="SourcesList">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </widget>
+          <widget class="QGroupBox" name="SourcesAreaGroupBox_3">
+           <property name="title">
+            <string>Info Browser</string>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_8">
+            <item row="0" column="0">
+             <widget class="QTabWidget" name="SourcesTabs">
+              <property name="currentIndex">
+               <number>1</number>
+              </property>
+              <widget class="QWidget" name="NexusSourcesTab">
+               <attribute name="title">
+                <string>NexusMods</string>
+               </attribute>
+               <layout class="QGridLayout" name="gridLayout_10">
+                <item row="0" column="0">
+                 <widget class="QGroupBox" name="NexusInfo">
+                  <property name="title">
+                   <string/>
+                  </property>
+                  <layout class="QVBoxLayout" name="verticalLayout">
+                   <item>
+                    <widget class="QLineEdit" name="NexusUrl"/>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="NexusTitle">
+                     <property name="font">
+                      <font>
+                       <family>MS Sans Serif</family>
+                       <pointsize>12</pointsize>
+                       <weight>75</weight>
+                       <bold>true</bold>
+                      </font>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                     <property name="textFormat">
+                      <enum>Qt::RichText</enum>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                     <property name="wordWrap">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="NexusSummary">
+                     <property name="font">
+                      <font>
+                       <family>MS Sans Serif</family>
+                       <italic>true</italic>
+                      </font>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                     <property name="textFormat">
+                      <enum>Qt::RichText</enum>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                     <property name="wordWrap">
+                      <bool>true</bool>
+                     </property>
+                     <property name="margin">
+                      <number>6</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QGroupBox" name="groupBox">
                      <property name="title">
                       <string/>
                      </property>
-                     <layout class="QVBoxLayout" name="verticalLayout">
-                      <item>
-                       <widget class="QLineEdit" name="NexusUrl"/>
-                      </item>
-                      <item>
-                       <widget class="QLabel" name="NexusTitle">
-                        <property name="font">
-                         <font>
-                          <family>MS Sans Serif</family>
-                          <pointsize>12</pointsize>
-                          <weight>75</weight>
-                          <bold>true</bold>
-                         </font>
-                        </property>
-                        <property name="text">
-                         <string/>
-                        </property>
-                        <property name="textFormat">
-                         <enum>Qt::RichText</enum>
-                        </property>
-                        <property name="alignment">
-                         <set>Qt::AlignCenter</set>
-                        </property>
-                        <property name="wordWrap">
-                         <bool>true</bool>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QLabel" name="NexusSummary">
-                        <property name="font">
-                         <font>
-                          <family>MS Sans Serif</family>
-                          <italic>true</italic>
-                         </font>
-                        </property>
-                        <property name="text">
-                         <string/>
-                        </property>
-                        <property name="textFormat">
-                         <enum>Qt::RichText</enum>
-                        </property>
-                        <property name="alignment">
-                         <set>Qt::AlignCenter</set>
-                        </property>
-                        <property name="wordWrap">
-                         <bool>true</bool>
-                        </property>
-                        <property name="margin">
-                         <number>6</number>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QGroupBox" name="groupBox">
-                        <property name="title">
-                         <string/>
-                        </property>
-                        <layout class="QGridLayout" name="gridLayout_4">
-                         <item row="0" column="0">
-                          <widget class="QTextEdit" name="NexusDescription">
-                           <property name="textInteractionFlags">
-                            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="1" column="0">
-                          <widget class="QTableWidget" name="NexusAvailableFiles">
-                           <property name="sizePolicy">
-                            <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
-                             <horstretch>0</horstretch>
-                             <verstretch>0</verstretch>
-                            </sizepolicy>
-                           </property>
-                           <property name="editTriggers">
-                            <set>QAbstractItemView::NoEditTriggers</set>
-                           </property>
-                           <property name="selectionBehavior">
-                            <enum>QAbstractItemView::SelectRows</enum>
-                           </property>
-                          </widget>
-                         </item>
-                        </layout>
-                       </widget>
-                      </item>
-                     </layout>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                 <widget class="QWidget" name="GenericSourcesTab">
-                  <attribute name="title">
-                   <string>Generic</string>
-                  </attribute>
-                  <layout class="QGridLayout" name="gridLayout_13">
-                   <item row="1" column="0">
-                    <widget class="QGroupBox" name="groupBox_2">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="title">
-                      <string>Metadata</string>
-                     </property>
-                     <layout class="QGridLayout" name="gridLayout_5">
+                     <layout class="QGridLayout" name="gridLayout_4">
                       <item row="0" column="0">
-                       <widget class="QTableView" name="GenericFileMetadataTable">
+                       <widget class="QTextEdit" name="NexusDescription">
+                        <property name="textInteractionFlags">
+                         <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="1" column="0">
+                       <widget class="QTableWidget" name="NexusAvailableFiles">
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
                           <horstretch>0</horstretch>
                           <verstretch>0</verstretch>
                          </sizepolicy>
                         </property>
+                        <property name="editTriggers">
+                         <set>QAbstractItemView::NoEditTriggers</set>
+                        </property>
+                        <property name="selectionBehavior">
+                         <enum>QAbstractItemView::SelectRows</enum>
+                        </property>
                        </widget>
-                      </item>
-                     </layout>
-                    </widget>
-                   </item>
-                   <item row="0" column="0">
-                    <widget class="QPushButton" name="GenericFileSelectButton">
-                     <property name="text">
-                      <string>Select File</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="0">
-                    <widget class="QGroupBox" name="groupBox_3">
-                     <property name="title">
-                      <string>Notes</string>
-                     </property>
-                     <layout class="QGridLayout" name="gridLayout_6">
-                      <item row="0" column="0">
-                       <widget class="QTextEdit" name="GenericFileNotes"/>
                       </item>
                      </layout>
                     </widget>
                    </item>
                   </layout>
                  </widget>
-                </widget>
-               </item>
-              </layout>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="GenericSourcesTab">
+               <attribute name="title">
+                <string>Generic</string>
+               </attribute>
+               <layout class="QGridLayout" name="gridLayout_13">
+                <item row="1" column="0">
+                 <widget class="QGroupBox" name="groupBox_2">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="title">
+                   <string>Metadata</string>
+                  </property>
+                  <layout class="QGridLayout" name="gridLayout_5">
+                   <item row="0" column="0">
+                    <widget class="QTableView" name="GenericFileMetadataTable">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QPushButton" name="GenericFileSelectButton">
+                  <property name="text">
+                   <string>Select File and Add as Package</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="0">
+                 <widget class="QGroupBox" name="groupBox_3">
+                  <property name="title">
+                   <string>Notes</string>
+                  </property>
+                  <layout class="QGridLayout" name="gridLayout_6">
+                   <item row="0" column="0">
+                    <widget class="QTextEdit" name="GenericFileNotes"/>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
              </widget>
-            </widget>
-           </item>
-          </layout>
+            </item>
+           </layout>
+          </widget>
          </widget>
         </item>
        </layout>
