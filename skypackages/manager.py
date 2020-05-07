@@ -111,6 +111,18 @@ class SkybuildAliases:
             if blob_id not in blob_ids:
                 blob_ids.append(blob_id)
 
+    def rename(self, old_alias, new_alias):
+        with self.session() as data:
+            if old_alias not in data:
+                raise Exception(
+                    f'cannot rename {old_alias} to {new_alias}; {old_alias} '
+                    f'is not a currently valid alias')
+            if new_alias in data:
+                raise Exception(
+                    f'cannot rename {old_alias} to {new_alias}; {new_alias} '
+                    f'is already an existing valid alias')
+            data[new_alias] = data.pop(old_alias)
+
     def remove(self, alias, blob_id):
         with self.session() as data:
             if alias in data and blob_id in data[alias]:

@@ -118,6 +118,9 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
         self.AliasesList.itemSelectionChanged.connect(
             self.alias_selection_changed)
 
+        self.AliasesList.itemChanged.connect(
+            self.alias_content_changed)
+
         self.BlobsList.itemSelectionChanged.connect(
             self.blob_selection_changed)
 
@@ -140,6 +143,20 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
         self.current_selected_alias = self.AliasesList.currentItem().text()
         self.render_blobs()
 
+    def alias_content_changed(self, alias_item):
+        new_alias = alias_item.text()
+        old_alias = alias_item.data(Qt.UserRole)['alias']
+        if old_alias == new_alias:
+            return
+        try:
+            self.manager.aliases.rename(old_alias, new_alias)
+        except Exception as e:
+            alias_item.setText(old_alias)
+            print(f'Cannot rename alias: got exception with message: {e}')
+        else:
+            self.current_selected_alias = new_alias
+            self.render_aliases()
+
     def blob_selection_changed(self):
         self.current_selected_blob = self.BlobsList.currentItem().text()
         self.render_sources()
@@ -159,7 +176,9 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
                 continue
             list_item = QListWidgetItem()
             list_item.setText(alias)
-            list_item.setData(Qt.UserRole, blob_ids)
+            list_item.setData(
+                Qt.UserRole, {'alias': alias, 'blob_ids': blob_ids})
+            list_item.setFlags(list_item.flags() | Qt.ItemIsEditable)
             self.AliasesList.addItem(list_item)
             if self.current_selected_alias == alias:
                 self.AliasesList.setCurrentItem(list_item)
@@ -172,7 +191,7 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
         self.BlobsList.clear()
         alias_item = self.AliasesList.currentItem()
         if alias_item:
-            blob_ids = alias_item.data(Qt.UserRole)
+            blob_ids = alias_item.data(Qt.UserRole)['blob_ids']
             for blob_id in blob_ids:
                 list_item = QListWidgetItem()
                 list_item.setText(blob_id)
