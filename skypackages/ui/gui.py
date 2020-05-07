@@ -13,6 +13,7 @@ from pathlib import Path
 
 from skypackages.manager import SkybuildPackageManager
 from skypackages.nexus import NexusMod
+from skypackages.sources import NexusPackageSource
 
 from pynxm import Nexus
 
@@ -37,6 +38,9 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
         self.refresh_manager()
 
         self.current_nexus_mod = None
+        self.current_selected_alias = None
+        self.current_selected_blob = None
+        self.current_selected_source = None
 
         self.app = QApplication([])
         self.app.setStyle('Fusion')
@@ -68,7 +72,9 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
         # load the gui
         self.show()
         self.ensure_gui_elements()
+        self.apply_initial_sizes()
         self.setup_signal_handlers()
+        self.initial_render()
 
     @property
     def current_nexus_url(self):
@@ -81,10 +87,22 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
             'SourcesList',
             'NexusUrl',
             'NexusDescription',
-            'NexusAvailableFiles'
+            'NexusAvailableFiles',
+            'PackagesAndSourcesHSplitter',
+            'LeftPaneVSplitter'
         ]
         for element in expected:
             assert hasattr(self, element), f'cannot access element {element}'
+
+    def apply_initial_sizes(self):
+        width = QtWidgets.qApp.desktop().availableGeometry(self).width()
+        height = QtWidgets.qApp.desktop().availableGeometry(self).height()
+
+        self.PackagesAndSourcesHSplitter.setSizes(
+            [width * 1 / 4, width * 3 / 4])
+
+        self.LeftPaneVSplitter.setSizes(
+            [height * 2 / 3, height * 1 / 6, height * 1 / 6])
 
     def setup_signal_handlers(self):
         self.NexusUrl.returnPressed.connect(self.load_nexus_mod_from_url)
@@ -92,17 +110,93 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
         self.NexusAvailableFiles.customContextMenuRequested.connect(
             self.nexus_file_context_menu)
 
+        self.AliasesList.itemSelectionChanged.connect(
+            self.alias_selection_changed)
+
+        self.BlobsList.itemSelectionChanged.connect(
+            self.blob_selection_changed)
+
+        self.SourcesList.itemSelectionChanged.connect(
+            self.source_selection_changed)
+
+        self.SourcesList.itemDoubleClicked.connect(
+            self.source_activated)
+
+    def source_activated(self, item):
+        source = item.data(Qt.UserRole)
+        if isinstance(source, NexusPackageSource):
+            self.NexusUrl.setText(source.url)
+            self.load_nexus_mod_from_url()
+
+    def alias_selection_changed(self):
+        self.current_selected_alias = self.AliasesList.currentItem().text()
+        self.render_blobs()
+
+    def blob_selection_changed(self):
+        self.current_selected_blob = self.BlobsList.currentItem().text()
+        self.render_sources()
+
+    def source_selection_changed(self):
+        self.current_selected_source = self.SourcesList.currentItem().text()
+
+    def initial_render(self):
+        self.render_aliases()
+
     def render_aliases(self):
         self.AliasesList.clear()
-        for alias, blob_ids in sorted(self.manager.aliases.data.items()):
+        aliases = self.manager.aliases.data
+        for alias, blob_ids in sorted(aliases.items()):
             list_item = QListWidgetItem()
             list_item.setText(alias)
             list_item.setData(Qt.UserRole, blob_ids)
             self.AliasesList.addItem(list_item)
+            if self.current_selected_alias == alias:
+                self.AliasesList.setCurrentItem(list_item)
+        if aliases and not self.AliasesList.currentItem():
+            self.AliasesList.setCurrentRow(0)
+        if not self.AliasesList.currentItem():
+            self.current_selected_alias = None
+
+    def render_blobs(self):
+        self.BlobsList.clear()
+        alias_item = self.AliasesList.currentItem()
+        if alias_item:
+            blob_ids = alias_item.data(Qt.UserRole)
+            for blob_id in blob_ids:
+                list_item = QListWidgetItem()
+                list_item.setText(blob_id)
+                self.BlobsList.addItem(list_item)
+                if self.current_selected_blob == blob_id:
+                    self.BlobsList.setCurrentItem(list_item)
+            if blob_ids and not self.BlobsList.currentItem():
+                self.BlobsList.setCurrentRow(0)
+            if not self.BlobsList.currentItem():
+                self.current_selected_blob = None
+
+    def render_sources(self):
+        self.SourcesList.clear()
+        blob_item = self.BlobsList.currentItem()
+        if blob_item:
+            blob_id = blob_item.text()
+            sources = self.manager.sources.fetch(blob_id)
+            for source in sources:
+                list_item = QListWidgetItem()
+                list_item.setText(f'{source}')
+                list_item.setData(Qt.UserRole, source)
+                self.SourcesList.addItem(list_item)
+                if self.current_selected_source == source:
+                    self.SourcesList.setCurrentItem(list_item)
+            if sources and not self.SourcesList.currentItem():
+                self.SourcesList.setCurrentRow(0)
+            if not self.SourcesList.currentItem():
+                self.current_selected_source = None
 
     def render_nexus_mod(self):
         self.NexusUrl.setText(self.current_nexus_mod.url)
-        self.NexusTitle.setText(self.current_nexus_mod.name)
+        self.NexusTitle.setText(
+            f'<a href="{self.current_nexus_mod.url}">'
+            f'{self.current_nexus_mod.name}'
+            f'</a>')
         self.NexusSummary.setText(self.current_nexus_mod.summary)
         self.NexusDescription.setText(self.current_nexus_mod.description_html)
 
@@ -135,12 +229,19 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
         self.NexusAvailableFiles.setRowCount(len(file_list))
         self.NexusAvailableFiles.setHorizontalHeaderLabels(headers)
 
+        selected_source = None
+        selected_source_item = self.SourcesList.currentItem()
+        if selected_source_item:
+            selected_source = selected_source_item.data(Qt.UserRole)
+
         for i, file_ in enumerate(file_list):
             for j, header in enumerate(headers):
                 item = QTableWidgetItem()
                 item.setText(f'{getattr(file_, header)}')
                 item.setData(Qt.UserRole, file_)
                 self.NexusAvailableFiles.setItem(i, j, item)
+            if file_.file_id == selected_source.file_id:
+                self.NexusAvailableFiles.setCurrentCell(i, 0)
 
         self.NexusAvailableFiles.resizeColumnsToContents()
 

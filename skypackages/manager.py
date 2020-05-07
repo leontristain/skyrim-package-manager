@@ -2,6 +2,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
+from skypackages.sources import NexusPackageSource
 from skypackages.utils import (
     compute_file_md5,
     copy_file,
@@ -37,6 +38,7 @@ class SkybuildPackageManager:
         self.paths = SkybuildPackagesPaths(self.root)
         self.paths.create_all()
         self.aliases = SkybuildAliases(self.paths.aliases)
+        self.sources = SkybuildSources(self.paths.sources)
 
     def add_source(self, alias, source, file_path):
         source.validate(file_path)
@@ -59,6 +61,28 @@ class SkybuildPackageManager:
 
         # apply aliases
         self.aliases.add(alias, blob_id)
+
+
+class SkybuildSources:
+    SOURCE_CLASSES = {
+        class_.__name__: class_ for class_ in [
+            NexusPackageSource
+        ]
+    }
+
+    def __init__(self, root):
+        self.root = Path(root)
+
+    def fetch(self, blob_id):
+        sources = []
+        file_path = self.root / f'{blob_id}.yaml'
+        if file_path.exists():
+            data = yaml_load(file_path.read_text())
+            if data:
+                for entry in data['entries']:
+                    class_ = self.SOURCE_CLASSES[entry.pop('class')]
+                    sources.append(class_.from_entry(entry))
+        return sources
 
 
 class SkybuildAliases:

@@ -6,7 +6,7 @@ from pathlib import Path
 from pynxm import Nexus
 from urllib.parse import urlparse
 
-from skypackages.sources.nexus import NexusPackageSource
+from skypackages.sources import NexusPackageSource
 from skypackages.utils import (
     compute_file_md5,
     download_url,
@@ -56,7 +56,8 @@ class NexusMod:
             return f'<span style="font-size: 4;">{value}</span>'
 
         parser.add_formatter('size', render_size)
-        return html.unescape(parser.format(self.description))
+        cleaned = self.description.replace('<br />', '')
+        return html.unescape(parser.format(cleaned))
 
     @property
     def url(self):

@@ -65,6 +65,20 @@ When an alias is selected, the list of packages it is associated with is display
 
 The file names box can be used to diff across two packages by content.
 
+### As A Helper Window When Developing A Recipe
+
+The main idea is that you would use whatever editor/IDE you like on your main window, then keep the `skypackages` window on the side.
+
+Whenever you need to work with packages, you can do so right there in the `skypackages` window, while having full context of your editor in your main view where you modify your recipe yaml files and run commands to test stuff.
+
+You can quickly search the alias in your aliases list. You can then select the alias, hit ctrl-c, and the alias will be copied to your clipboard.
+
+By default, if an alias has only one tarball, it is the preferred tarball. With multiple preferred tarballs, you can choose your preferred tarball by right-clicking a tarball and select 'set as preferred'.
+
+You can right-click a package name and select 'Preview' to unpack it in a temporary directory and open it up to look at its contents.
+
+If a package is a fomod, the packages list will display that. You can right-click a package name and select 'Simulate Fomod' to go through the fomod wizard, where at the end, it will convert your user inputs into recipe yaml selections for you to copy/paste straight into your yaml.
+
 ### Scope of Tool
 
 Overall, the `skypackages` tool is purely the management of packages, sources, and aliases. The aliases forms the interface between the package and the recipe. Essentially, the recipe will specify things by alias name, assuming the alias points to the expected tarball to be used.

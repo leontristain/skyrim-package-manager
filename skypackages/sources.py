@@ -11,18 +11,22 @@ class NexusPackageSource:
     file_name: str
     size: str
 
+    def __repr__(self):
+        return (
+            f'NexusPackageSource('
+            f'{self.game}, '
+            f'{self.mod_id}, '
+            f'{self.file_id}, '
+            f'{self.file_name}, '
+            f'{self.size})')
+
+    @property
+    def url(self):
+        return f'https://www.nexusmods.com/{self.game}/mods/{self.mod_id}'
+
     @property
     def entry(self):
         return {**{'class': self.__class__.__name__}, **asdict(self)}
-
-    @classmethod
-    def from_mod_file(cls, mod_file):
-        return cls(
-            game=mod_file.game,
-            mod_id=mod_file.mod_id,
-            file_id=mod_file.file_id,
-            file_name=mod_file.file_name,
-            size=mod_file.size)
 
     def validate(self, file_path):
         assert file_path.name == self.file_name
@@ -42,3 +46,16 @@ class NexusPackageSource:
             entries.append(self.entry)
 
         sources_file.write_text(yaml_dump(sources))
+
+    @classmethod
+    def from_mod_file(cls, mod_file):
+        return cls(
+            game=mod_file.game,
+            mod_id=mod_file.mod_id,
+            file_id=mod_file.file_id,
+            file_name=mod_file.file_name,
+            size=mod_file.size)
+
+    @classmethod
+    def from_entry(cls, entry):
+        return cls(**entry)
