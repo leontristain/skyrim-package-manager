@@ -2,7 +2,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
-from skypackages.sources import NexusPackageSource
+from skypackages.sources import NexusPackageSource, GenericPackageSource
 from skypackages.utils import (
     compute_file_md5,
     copy_file,
@@ -66,7 +66,8 @@ class SkybuildPackageManager:
 class SkybuildSources:
     SOURCE_CLASSES = {
         class_.__name__: class_ for class_ in [
-            NexusPackageSource
+            NexusPackageSource,
+            GenericPackageSource
         ]
     }
 
@@ -107,7 +108,7 @@ class SkybuildAliases:
             return aliases_data
 
     def add(self, alias, blob_id):
-        with self.session() as data:
+        with self.session(self.aliases_file) as data:
             blob_ids = data.setdefault(alias, [])
             if blob_id not in blob_ids:
                 blob_ids.append(blob_id)

@@ -9,19 +9,20 @@ from PyQt5.QtWidgets import (
     QTableWidgetItem,
     QMenu,
     QInputDialog,
-    QLineEdit)
+    QLineEdit,
+    QFileDialog)
 from pathlib import Path
 
 from skypackages.manager import SkybuildPackageManager
 from skypackages.nexus import NexusMod
-from skypackages.sources import NexusPackageSource
+from skypackages.sources import NexusPackageSource, GenericPackageSource
 
 from pynxm import Nexus
 
 UI_FILE = Path(__file__).parent / 'skypackages.ui'
 
 
-class NexusDownloadPostActions(Enum):
+class FileLoadPostActions(Enum):
     add_as_new = 0
     add_into_selected = 1
     diff_with_selected = 2
@@ -99,7 +100,13 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
             'NexusDescription',
             'NexusAvailableFiles',
             'PackagesAndSourcesHSplitter',
-            'LeftPaneVSplitter'
+            'LeftPaneVSplitter',
+            'GenericFileSelectButton',
+            'GenericFileMetadataTable',
+            'GenericFileNotes',
+            'InfoBrowserTabs',
+            'InfoBrowserNexusTab',
+            'InfoBrowserGenericTab'
         ]
         for element in expected:
             assert hasattr(self, element), f'cannot access element {element}'
@@ -141,6 +148,9 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
         self.SourcesList.itemDoubleClicked.connect(
             self.source_activated)
 
+        self.GenericFileSelectButton.clicked.connect(
+            self.select_generic_file)
+
     def aliases_filter_changed(self, text):
         self.render_aliases()
 
@@ -151,8 +161,13 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
     def source_activated(self, item):
         source = item.data(Qt.UserRole)
         if isinstance(source, NexusPackageSource):
+            self.InfoBrowserTabs.setCurrentWidget(self.InfoBrowserNexusTab)
             self.NexusUrl.setText(source.url)
             self.load_nexus_mod_from_url()
+        elif isinstance(source, GenericPackageSource):
+            self.InfoBrowserTabs.setCurrentWidget(self.InfoBrowserGenericTab)
+            self.render_generic_file_metadata()
+            self.render_generic_file_notes()
 
     def alias_selection_changed(self):
         self.current_selected_alias = self.AliasesList.currentItem().text()
@@ -257,6 +272,40 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
             if not self.SourcesList.currentItem():
                 self.current_selected_source = None
 
+    def render_generic_file_metadata(self):
+        source_item = self.SourcesList.currentItem()
+        if source_item:
+            source = source_item.data(Qt.UserRole)
+            self.GenericFileMetadataTable.clear()
+            data = {
+                'file_name': source.file_name,
+                'size': source.size,
+                'url': source.url
+            }
+            self.GenericFileMetadataTable.setColumnCount(2)
+            self.GenericFileMetadataTable.setRowCount(len(data))
+            for i, (key, value) in enumerate(data.items()):
+                key_item = QTableWidgetItem()
+                key_item.setText(key)
+                value_item = QTableWidgetItem()
+                value_item.setText(f'{value}')
+                entry_data = {
+                    'key': key,
+                    'source': source,
+                    'key_item': key_item,
+                    'value_item': value_item}
+                key_item.setData(Qt.UserRole, entry_data)
+                value_item.setData(Qt.UserRole, entry_data)
+                self.GenericFileMetadataTable.setItem(i, 0, key_item)
+                self.GenericFileMetadataTable.setItem(i, 1, value_item)
+            self.GenericFileMetadataTable.resizeColumnsToContents()
+
+    def render_generic_file_notes(self):
+        source_item = self.SourcesList.currentItem()
+        if source_item:
+            source = source_item.data(Qt.UserRole)
+            self.GenericFileNotes.setText(source.notes)
+
     def render_nexus_mod(self):
         self.NexusUrl.setText(self.current_nexus_mod.url)
         self.NexusTitle.setText(
@@ -320,31 +369,34 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
             action_add_as_new = menu.addAction(
                 'Download and Add as New Package')
             action_add_as_new.triggered.connect(
-                lambda: self.nexus_download(
+                lambda: self.download_nexus_file(
                     nexus_file,
-                    post_action=NexusDownloadPostActions.add_as_new))
+                    post_action=FileLoadPostActions.add_as_new))
 
             action_add_into_selected = menu.addAction(
                 'Download and Add into Selected Package')
             action_add_into_selected.triggered.connect(
-                lambda: self.nexus_download(
+                lambda: self.download_nexus_file(
                     nexus_file,
-                    post_action=NexusDownloadPostActions.add_into_selected))
+                    post_action=FileLoadPostActions.add_into_selected))
 
             action_diff_with_selected = menu.addAction(
                 'Download and Diff with Selected Package')
             action_diff_with_selected.triggered.connect(
-                lambda: self.nexus_download(
+                lambda: self.download_nexus_file(
                     nexus_file,
-                    post_action=NexusDownloadPostActions.diff_with_selected))
+                    post_action=FileLoadPostActions.diff_with_selected))
 
             menu.popup(QCursor.pos())
 
-    def nexus_download(self, nexus_file, post_action=None):
+    def download_nexus_file(self, nexus_file, post_action=None):
         downloaded = nexus_file.download_into(self.manager.paths.download_cache)
         print(f'downloaded: {downloaded}')
+        package_source = nexus_file.package_source
+        self.load_file(downloaded, package_source, post_action=post_action)
 
-        if post_action is NexusDownloadPostActions.add_as_new:
+    def load_file(self, file_, package_source, post_action=None):
+        if post_action is FileLoadPostActions.add_as_new:
             alias = ''
             while not self.validate_alias(alias):
                 alias, ok_pressed = QInputDialog.getText(
@@ -353,9 +405,23 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
                     'New Package Name',
                     QLineEdit.Normal,
                     '')
-            self.manager.add_source(
-                alias, nexus_file.package_source, downloaded)
+            self.manager.add_source(alias, package_source, file_)
             self.render_aliases()
+
+    def load_generic_file(self, generic_file, post_action=None):
+        print(f'loaded {generic_file}')
+        package_source = GenericPackageSource.from_file(generic_file)
+        self.load_file(generic_file, package_source, post_action=post_action)
+
+    def select_generic_file(self):
+        file_, _ = QFileDialog().getOpenFileName(self, 'Select Tarball')
+        file_ = Path(file_)
+        if not file_.is_file():
+            print(f'selected file ({file_}) must be an archive file')
+            return
+
+        self.load_generic_file(
+            file_, post_action=FileLoadPostActions.add_as_new)
 
     def validate_alias(self, alias):
         if not alias:

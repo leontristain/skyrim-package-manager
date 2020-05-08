@@ -154,11 +154,11 @@
            </property>
            <layout class="QGridLayout" name="gridLayout_8">
             <item row="0" column="0">
-             <widget class="QTabWidget" name="SourcesTabs">
+             <widget class="QTabWidget" name="InfoBrowserTabs">
               <property name="currentIndex">
                <number>1</number>
               </property>
-              <widget class="QWidget" name="NexusSourcesTab">
+              <widget class="QWidget" name="InfoBrowserNexusTab">
                <attribute name="title">
                 <string>NexusMods</string>
                </attribute>
@@ -258,7 +258,7 @@
                 </item>
                </layout>
               </widget>
-              <widget class="QWidget" name="GenericSourcesTab">
+              <widget class="QWidget" name="InfoBrowserGenericTab">
                <attribute name="title">
                 <string>Generic</string>
                </attribute>
@@ -276,7 +276,7 @@
                   </property>
                   <layout class="QGridLayout" name="gridLayout_5">
                    <item row="0" column="0">
-                    <widget class="QTableView" name="GenericFileMetadataTable">
+                    <widget class="QTableWidget" name="GenericFileMetadataTable">
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
                        <horstretch>0</horstretch>

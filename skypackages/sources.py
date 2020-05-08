@@ -1,4 +1,5 @@
 from dataclasses import dataclass, asdict
+from pathlib import Path
 
 from skypackages.utils import yaml_dump, yaml_load
 
@@ -11,7 +12,7 @@ class GenericPackageSource:
     notes: str
 
     def __repr__(self):
-        return f'GenericPackageSource({self.file_name} {self.size}'
+        return f'GenericPackageSource({self.file_name}, {self.size})'
 
     def validate(self, file_path):
         assert file_path.name == self.file_name
@@ -20,9 +21,9 @@ class GenericPackageSource:
             f'file sizes do not match for {file_path}, got {size}, expected '
             f'{self.size}')
 
-    def match_entry(self, entry):
+    def match(self, entry):
         return (
-            entry['class'] == self.__class__.__name and
+            entry['class'] == self.__class__.__name__ and
             entry['file_name'] == self.file_name and
             entry['size'] == self.size)
 
@@ -33,6 +34,15 @@ class GenericPackageSource:
     @classmethod
     def from_entry(cls, entry):
         return cls(**entry)
+
+    @classmethod
+    def from_file(cls, file_):
+        file_ = Path(file_)
+        return cls(
+            file_name=file_.name,
+            size=int(file_.stat().st_size / 1024),
+            url='',
+            notes='')
 
     def save_details(self, blob_id, sources_folder):
         sources_file = sources_folder / f'{blob_id}.yaml'
