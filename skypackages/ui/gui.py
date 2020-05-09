@@ -2,7 +2,7 @@ from enum import Enum
 import fnmatch
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPalette, QColor, QCursor
+from PyQt5.QtGui import QPalette, QColor, QCursor, QKeySequence
 from PyQt5.QtWidgets import (
     QApplication,
     QListWidgetItem,
@@ -10,7 +10,8 @@ from PyQt5.QtWidgets import (
     QMenu,
     QInputDialog,
     QLineEdit,
-    QFileDialog)
+    QFileDialog,
+    QShortcut)
 from pathlib import Path
 
 from skypackages.manager import SkybuildPackageManager
@@ -103,6 +104,7 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
             'LeftPaneVSplitter',
             'GenericFileSelectButton',
             'GenericFileMetadataTable',
+            'GenericFileNotesGroupBox',
             'GenericFileNotes',
             'InfoBrowserTabs',
             'InfoBrowserNexusTab',
@@ -158,6 +160,16 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
 
         self.GenericFileSelectButton.clicked.connect(
             self.select_generic_file)
+
+        self.GenericFileMetadataTable.itemChanged.connect(
+            self.generic_file_metadata_changed)
+
+        self.GenericFileNotes.textChanged.connect(
+            self.generic_file_notes_changed)
+
+        QShortcut(
+            QKeySequence('Ctrl+S'), self.GenericFileNotes).activated.connect(
+                self.save_generic_notes)
 
     def aliases_filter_changed(self, text):
         self.render_aliases()
@@ -300,14 +312,19 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
             for i, (key, value) in enumerate(data.items()):
                 key_item = QTableWidgetItem()
                 key_item.setText(key)
+                key_item.setFlags(key_item.flags() ^ Qt.ItemIsEditable)
                 value_item = QTableWidgetItem()
                 value_item.setText(f'{value}')
+                if key != 'url':
+                    key_item.setBackground(QColor(50, 50, 50))
+                    value_item.setBackground(QColor(50, 50, 50))
+                    value_item.setFlags(value_item.flags() ^ Qt.ItemIsEditable)
                 entry_data = {
                     'key': key,
+                    'value': value,
                     'source': source,
                     'key_item': key_item,
                     'value_item': value_item}
-                key_item.setData(Qt.UserRole, entry_data)
                 value_item.setData(Qt.UserRole, entry_data)
                 self.GenericFileMetadataTable.setItem(i, 0, key_item)
                 self.GenericFileMetadataTable.setItem(i, 1, value_item)
@@ -444,6 +461,60 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
 
         self.load_generic_file(
             file_, post_action=FileLoadPostActions.add_as_new)
+
+    def generic_file_metadata_changed(self, item):
+        data = item.data(Qt.UserRole)
+        if data and data['key'] == 'url' and item.text() != data['value']:
+            current_blob_item = self.BlobsList.currentItem()
+            current_source_item = self.SourcesList.currentItem()
+            if current_blob_item and current_source_item:
+                current_blob_id = current_blob_item.text()
+                current_source = current_source_item.data(Qt.UserRole)
+                current_source.url = item.text()
+                self.manager.update_source(current_blob_id, current_source)
+            self.render_generic_file_metadata()
+
+    def generic_file_notes_changed(self):
+        current_text = self.GenericFileNotes.toPlainText()
+        current_source_item = self.SourcesList.currentItem()
+        if current_source_item:
+            current_source = current_source_item.data(Qt.UserRole)
+            if current_source and isinstance(
+                    current_source, GenericPackageSource):
+                saved_text = current_source.notes
+                if current_text == saved_text:
+                    self.GenericFileNotesGroupBox.setTitle('Notes')
+                    self.GenericFileNotes.setStyleSheet(
+                        'background-color: rgb(0, 0, 0);')
+                    return
+                else:
+                    self.GenericFileNotesGroupBox.setTitle('Notes (Unsaved!)')
+                    self.GenericFileNotes.setStyleSheet(
+                        'background-color: rgb(100, 100, 100);')
+                    return
+
+        if current_text:
+            self.GenericFileNotes.setStyleSheet(
+                'background-color: rgb(255, 0, 0);')
+        else:
+            self.GenericFileNotes.setStyleSheet(
+                'background-color: rgb(0, 0, 0);')
+
+    def save_generic_notes(self):
+        current_text = self.GenericFileNotes.toPlainText()
+        current_source_item = self.SourcesList.currentItem()
+        current_blob_item = self.BlobsList.currentItem()
+        if current_blob_item and current_source_item:
+            current_blob_id = current_blob_item.text()
+            current_source = current_source_item.data(Qt.UserRole)
+            if current_source and isinstance(
+                    current_source, GenericPackageSource):
+                if current_text != current_source.notes:
+                    current_source.notes = current_text
+                    self.manager.update_source(current_blob_id, current_source)
+                    saved_cursor = self.GenericFileNotes.textCursor()
+                    self.render_generic_file_notes()
+                    self.GenericFileNotes.setTextCursor(saved_cursor)
 
     def validate_alias(self, alias):
         if not alias:

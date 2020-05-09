@@ -283,6 +283,9 @@
                        <verstretch>0</verstretch>
                       </sizepolicy>
                      </property>
+                     <property name="sizeAdjustPolicy">
+                      <enum>QAbstractScrollArea::AdjustToContents</enum>
+                     </property>
                     </widget>
                    </item>
                   </layout>
@@ -296,7 +299,7 @@
                  </widget>
                 </item>
                 <item row="2" column="0">
-                 <widget class="QGroupBox" name="groupBox_3">
+                 <widget class="QGroupBox" name="GenericFileNotesGroupBox">
                   <property name="title">
                    <string>Notes</string>
                   </property>

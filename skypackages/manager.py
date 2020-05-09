@@ -62,6 +62,9 @@ class SkybuildPackageManager:
         # apply aliases
         self.aliases.add(alias, blob_id)
 
+    def update_source(self, blob_id, source):
+        source.save_details(blob_id, self.paths.sources)
+
 
 class SkybuildSources:
     SOURCE_CLASSES = {
