@@ -123,6 +123,11 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
 
     def setup_signal_handlers(self):
         self.NexusUrl.returnPressed.connect(self.load_nexus_mod_from_url)
+
+        self.AliasesList.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.AliasesList.customContextMenuRequested.connect(
+            self.aliases_list_context_menu)
+
         self.NexusAvailableFiles.setContextMenuPolicy(Qt.CustomContextMenu)
         self.NexusAvailableFiles.customContextMenuRequested.connect(
             self.nexus_file_context_menu)
@@ -138,6 +143,9 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
 
         self.AliasesList.itemChanged.connect(
             self.alias_content_changed)
+
+        self.AliasesList.itemDoubleClicked.connect(
+            self.alias_activated)
 
         self.BlobsList.itemSelectionChanged.connect(
             self.blob_selection_changed)
@@ -157,6 +165,11 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
     def aliases_sort_mode_changed(self, index):
         self.alias_sort_mode = AliasSortMode(index)
         self.render_aliases()
+
+    def alias_activated(self, item):
+        current_selected_source_item = self.SourcesList.currentItem()
+        if current_selected_source_item:
+            self.source_activated(current_selected_source_item)
 
     def source_activated(self, item):
         source = item.data(Qt.UserRole)
@@ -359,6 +372,15 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
                 self.NexusAvailableFiles.setCurrentCell(i, 0)
 
         self.NexusAvailableFiles.resizeColumnsToContents()
+
+    def aliases_list_context_menu(self, event):
+        clicked_item = self.AliasesList.itemAt(event)
+        if clicked_item:
+            menu = QMenu(self.AliasesList)
+            action_rename = menu.addAction('Rename')
+            action_rename.triggered.connect(
+                lambda: self.AliasesList.editItem(clicked_item))
+            menu.popup(QCursor.pos())
 
     def nexus_file_context_menu(self, event):
         clicked_item = self.NexusAvailableFiles.itemAt(event)
