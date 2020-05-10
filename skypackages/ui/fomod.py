@@ -270,7 +270,7 @@ class FomodInstallerGui(QtWidgets.QMainWindow):
 
         page = self.installer.next(selected)
         if page:
-            self.render_page(page)    
+            self.render_page(page)
         else:
             print('done!')
 
