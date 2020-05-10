@@ -32,7 +32,7 @@
           </property>
           <widget class="QTabWidget" name="DataTabs">
            <property name="currentIndex">
-            <number>0</number>
+            <number>1</number>
            </property>
            <widget class="QWidget" name="SelectedFilesTab">
             <attribute name="title">
@@ -55,6 +55,12 @@
             <layout class="QGridLayout" name="gridLayout_6">
              <item row="0" column="0">
               <widget class="QTextEdit" name="ChoicesText">
+               <property name="font">
+                <font>
+                 <family>Consolas</family>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
                <property name="textInteractionFlags">
                 <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
                </property>
@@ -69,7 +75,7 @@
            </property>
            <layout class="QGridLayout" name="gridLayout_3">
             <item row="0" column="0">
-             <widget class="QSplitter" name="splitter_2">
+             <widget class="QSplitter" name="FomodPhotoVSplitter">
               <property name="orientation">
                <enum>Qt::Vertical</enum>
               </property>
@@ -108,9 +114,18 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLabel" name="FomodPhotoLabel">
+                 <widget class="FomodOptionPhoto" name="FomodPhotoLabel">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
                   <property name="text">
                    <string>Photo Label</string>
+                  </property>
+                  <property name="scaledContents">
+                   <bool>false</bool>
                   </property>
                  </widget>
                 </item>
@@ -133,7 +148,7 @@
                     </item>
                    </layout>
                   </widget>
-                  <widget class="QGroupBox" name="FomodOptionsGroup">
+                  <widget class="FomodOptionsPanel" name="FomodOptionsGroup">
                    <property name="title">
                     <string>Options</string>
                    </property>
@@ -211,6 +226,19 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>FomodOptionPhoto</class>
+   <extends>QLabel</extends>
+   <header>skypackages.ui.fomod</header>
+  </customwidget>
+  <customwidget>
+   <class>FomodOptionsPanel</class>
+   <extends>QGroupBox</extends>
+   <header>skypackages.ui.fomod</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
