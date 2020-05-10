@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from skypackages.sources import NexusPackageSource, GenericPackageSource
+from skypackages.tarballs import Tarball
 from skypackages.utils import (
     compute_file_md5,
     copy_file,
@@ -16,15 +17,34 @@ class SkybuildPackagesPaths:
     root: Path
 
     def __post_init__(self):
+        # folder of tarball blobs
         self.blobs = self.root / 'blobs'
+
+        # folder of metadata for tarball blobs
+        self.meta = self.root / 'blobs'
+
+        # folder for alias management; aliases form a many-to-many relationship
+        # with tarball blobs
         self.aliases = self.root / 'aliases'
+
+        # folder for sources; sources form a many-to-one relationship with
+        # tarball blobs
         self.sources = self.root / 'sources'
+
+        # folder for shortcuts to blobs created with names resembling the
+        # original names of source files; useful for manual browsing
         self.view = self.root / 'view'
+
+        # tmp folder; various processes may use this folder for temporary work
         self.tmp = self.root / 'tmp'
+
+        # download cache; nexus downloads go here first before getting imported
+        # into blobs
         self.download_cache = self.root / 'download_cache'
 
     def create_all(self):
         self.blobs.mkdir(parents=True, exist_ok=True)
+        self.meta.mkdir(parents=True, exist_ok=True)
         self.aliases.mkdir(parents=True, exist_ok=True)
         self.sources.mkdir(parents=True, exist_ok=True)
         self.view.mkdir(parents=True, exist_ok=True)
@@ -64,6 +84,23 @@ class SkybuildPackageManager:
 
     def update_source(self, blob_id, source):
         source.save_details(blob_id, self.paths.sources)
+
+    def fetch_tarball(self, blob_id):
+        return Tarball(self.paths.blobs / blob_id)
+
+    def meta(self, blob_id):
+        meta_file = self.paths.meta / f'{blob_id}.yaml'
+        if meta_file.exists():
+            meta = yaml_load(meta_file.read_text())
+        else:
+            blob = self.paths.blobs / blob_id
+            tarball = Tarball(blob)
+            meta = {
+                'filelist': [str(key) for key in tarball.contents.keys()],
+                'fomod_root': str(tarball.fomod_root)
+            }
+            meta_file.write_text(yaml_dump(meta))
+        return meta
 
 
 class SkybuildSources:

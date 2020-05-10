@@ -5,6 +5,7 @@
 .eggs*
 *egg-info
 .pytest_cache*
+*.psd
 venv
 vim*
 test_project

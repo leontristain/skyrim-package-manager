@@ -14,4 +14,5 @@ setup(name='skyrim-package-manager',
       entry_points='''
           [console_scripts]
           skypackages=skypackages.cli.skypackages:cli
+          fomod=skypackages.cli.fomod:cli
       ''')

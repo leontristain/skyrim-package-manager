@@ -2,7 +2,7 @@ from enum import Enum
 import fnmatch
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPalette, QColor, QCursor, QKeySequence
+from PyQt5.QtGui import QPalette, QColor, QCursor, QKeySequence, QIcon, QPixmap
 from PyQt5.QtWidgets import (
     QApplication,
     QListWidgetItem,
@@ -21,6 +21,7 @@ from skypackages.sources import NexusPackageSource, GenericPackageSource
 from pynxm import Nexus
 
 UI_FILE = Path(__file__).parent / 'skypackages.ui'
+ICON_FOLDER = Path(__file__).parent
 
 
 class FileLoadPostActions(Enum):
@@ -86,6 +87,14 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
         self.apply_initial_sizes()
         self.setup_signal_handlers()
         self.initial_render()
+
+    def icon(self, name=None):
+        if name:
+            icon_path = ICON_FOLDER / f'{name}.png'
+            assert icon_path.exists(), f'icon path {icon_path} does not exist'
+            return QIcon(QPixmap(str(icon_path)))
+        else:
+            return QIcon()
 
     @property
     def current_nexus_url(self):
@@ -271,6 +280,10 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
             for blob_id in blob_ids:
                 list_item = QListWidgetItem()
                 list_item.setText(blob_id)
+                if self.manager.meta(blob_id)['fomod_root']:
+                    list_item.setIcon(self.icon('fomod'))
+                else:
+                    list_item.setIcon(self.icon('archive'))
                 self.BlobsList.addItem(list_item)
                 if self.current_selected_blob == blob_id:
                     self.BlobsList.setCurrentItem(list_item)

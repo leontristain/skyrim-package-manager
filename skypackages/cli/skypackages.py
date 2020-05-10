@@ -1,7 +1,7 @@
 import click
 from pathlib import Path
 
-from skypackages.ui.gui import SkyPackagesGui
+from skypackages.ui.skypackages import SkyPackagesGui
 
 
 @click.group(context_settings={'help_option_names': ['-h', '--help']})
