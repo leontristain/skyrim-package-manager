@@ -22,7 +22,7 @@ class Tarball:
         for path in sorted(self.contents, key=lambda p: len(str(p))):
             if (path.name.lower() == 'moduleconfig.xml' and
                     path.parent.name.lower() == 'fomod'):
-                return path.parent
+                return path.parent.parent
 
     @cached_property
     def contents(self):

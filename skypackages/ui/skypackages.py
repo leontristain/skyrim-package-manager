@@ -13,6 +13,8 @@ from PyQt5.QtWidgets import (
     QFileDialog,
     QShortcut)
 from pathlib import Path
+import subprocess
+import sys
 
 from skypackages.manager import SkybuildPackageManager
 from skypackages.nexus import NexusMod
@@ -138,6 +140,10 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
         self.AliasesList.setContextMenuPolicy(Qt.CustomContextMenu)
         self.AliasesList.customContextMenuRequested.connect(
             self.aliases_list_context_menu)
+
+        self.BlobsList.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.BlobsList.customContextMenuRequested.connect(
+            self.blobs_list_context_menu)
 
         self.NexusAvailableFiles.setContextMenuPolicy(Qt.CustomContextMenu)
         self.NexusAvailableFiles.customContextMenuRequested.connect(
@@ -411,6 +417,28 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
             action_rename.triggered.connect(
                 lambda: self.AliasesList.editItem(clicked_item))
             menu.popup(QCursor.pos())
+
+    def blobs_list_context_menu(self, event):
+        clicked_item = self.BlobsList.itemAt(event)
+        if clicked_item:
+            blob_id = clicked_item.text()
+            if self.manager.meta(blob_id)['fomod_root']:
+                menu = QMenu(self.BlobsList)
+                action_rename = menu.addAction('Preview Fomod')
+                action_rename.triggered.connect(
+                    lambda: self.preview_fomod(clicked_item))
+                menu.popup(QCursor.pos())
+
+    def preview_fomod(self, blob_item):
+        blob_id = blob_item.text()
+        fomod_root = self.manager.meta(blob_id)['fomod_root']
+        assert fomod_root, f'no fomod_root for {blob_id}'
+
+        self.manager.clean_tmp()
+        self.manager.fetch_tarball(blob_id).extract(self.manager.paths.tmp)
+        fomod_root = self.manager.paths.tmp / fomod_root
+        subprocess.Popen([
+            f'{sys.argv[0]}', 'fomod', f'{fomod_root}'])
 
     def nexus_file_context_menu(self, event):
         clicked_item = self.NexusAvailableFiles.itemAt(event)

@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
+import shutil
 
 from skypackages.sources import NexusPackageSource, GenericPackageSource
 from skypackages.tarballs import Tarball
@@ -21,7 +22,7 @@ class SkybuildPackagesPaths:
         self.blobs = self.root / 'blobs'
 
         # folder of metadata for tarball blobs
-        self.meta = self.root / 'blobs'
+        self.meta = self.root / 'meta'
 
         # folder for alias management; aliases form a many-to-many relationship
         # with tarball blobs
@@ -101,6 +102,10 @@ class SkybuildPackageManager:
             }
             meta_file.write_text(yaml_dump(meta))
         return meta
+
+    def clean_tmp(self):
+        shutil.rmtree(self.paths.tmp)
+        self.paths.tmp.mkdir(parents=True, exist_ok=True)
 
 
 class SkybuildSources:
