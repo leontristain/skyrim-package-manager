@@ -171,7 +171,7 @@
             <item row="0" column="0">
              <widget class="QTabWidget" name="InfoBrowserTabs">
               <property name="currentIndex">
-               <number>0</number>
+               <number>2</number>
               </property>
               <widget class="QWidget" name="InfoBrowserNexusTab">
                <attribute name="title">
@@ -331,6 +331,15 @@
                <attribute name="title">
                 <string>Tarball Details</string>
                </attribute>
+               <layout class="QGridLayout" name="gridLayout_7">
+                <item row="0" column="0">
+                 <widget class="QTextEdit" name="TarballDetailsText">
+                  <property name="textInteractionFlags">
+                   <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </widget>
              </widget>
             </item>

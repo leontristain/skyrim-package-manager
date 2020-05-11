@@ -158,8 +158,8 @@ class NexusModFile:
             if (file_name and md5 and
                     (folder / file_name).exists() and
                     compute_file_md5(folder / file_name) == md5):
-                assert int(
-                    (folder / file_name).stat().st_size / 1024) == self.size, (
+                size = int((folder / file_name).stat().st_size / 1024)
+                assert abs(size - self.size <= 1), (
                         'found in cache but size mismatch')
                 return folder / file_name
 

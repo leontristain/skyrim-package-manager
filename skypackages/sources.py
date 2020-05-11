@@ -90,7 +90,7 @@ class NexusPackageSource:
     def validate(self, file_path):
         assert file_path.name == self.file_name
         size = int(file_path.stat().st_size / 1024)
-        assert size == self.size, (
+        assert abs(size - self.size <= 1), (
             f'file sizes do not match for {file_path}, got {size}, expected '
             f'{self.size}')
 

@@ -43,6 +43,9 @@ class SkybuildPackagesPaths:
         # into blobs
         self.download_cache = self.root / 'download_cache'
 
+    def override_aliases(self, aliases_path):
+        self.aliases = Path(aliases_path)
+
     def create_all(self):
         self.blobs.mkdir(parents=True, exist_ok=True)
         self.meta.mkdir(parents=True, exist_ok=True)
@@ -54,9 +57,12 @@ class SkybuildPackagesPaths:
 
 
 class SkybuildPackageManager:
-    def __init__(self, root):
+    def __init__(self, root, aliases_folder=None):
         self.root = Path(root)
+        self.aliases_folder = aliases_folder
         self.paths = SkybuildPackagesPaths(self.root)
+        if self.aliases_folder:
+            self.paths.override_aliases(self.aliases_folder)
         self.paths.create_all()
         self.aliases = SkybuildAliases(self.paths.aliases)
         self.sources = SkybuildSources(self.paths.sources)
@@ -98,7 +104,8 @@ class SkybuildPackageManager:
             tarball = Tarball(blob)
             meta = {
                 'filelist': [str(key) for key in tarball.contents.keys()],
-                'fomod_root': str(tarball.fomod_root)
+                'fomod_root': (
+                    str(tarball.fomod_root) if tarball.fomod_root else None)
             }
             meta_file.write_text(yaml_dump(meta))
         return meta
@@ -178,20 +185,22 @@ class SkybuildAliases:
                     data.pop(alias)
 
     def get_selections(self):
+        if not self.selection_file.exists():
+            self.selection_file.write_text(yaml_dump({}))
+
         all_selections = {}
-        with (
-            self.session(self.aliases_file, read_only=True),
-            self.session(self.selection_file, read_only=True)) as (
-                aliases, selection):
-            for alias, blob_ids in aliases.items():
-                selected = None
-                if alias in selection:
-                    selected = selection[alias]
-                elif len(blob_ids) == 1:
-                    selected = blob_ids[0]
-                if not selected:
-                    raise Exception(
-                        f'alias {alias} does not have a valid selection')
+        with self.session(self.aliases_file, read_only=True) as aliases:
+            with self.session(self.selection_file, read_only=True) as selection:
+                for alias, blob_ids in aliases.items():
+                    selected = None
+                    if alias in selection:
+                        selected = selection[alias]
+                    elif len(blob_ids) == 1:
+                        selected = blob_ids[0]
+                    if not selected:
+                        raise Exception(
+                            f'alias {alias} does not have a valid selection')
+                    all_selections[alias] = selected
         return all_selections
 
     def get_selection(self, alias):

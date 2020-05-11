@@ -1,5 +1,6 @@
 from enum import Enum
 import fnmatch
+import os
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPalette, QColor, QCursor, QKeySequence, QIcon, QPixmap
@@ -11,6 +12,7 @@ from PyQt5.QtWidgets import (
     QInputDialog,
     QLineEdit,
     QFileDialog,
+    QMessageBox,
     QShortcut)
 from pathlib import Path
 import subprocess
@@ -40,8 +42,9 @@ class AliasSortMode(Enum):
 
 
 class SkyPackagesGui(QtWidgets.QMainWindow):
-    def __init__(self, project_folder, nexus_api_key):
-        self.project_folder = Path(project_folder)
+    def __init__(self, packages_folder, nexus_api_key, aliases_folder=None):
+        self.packages_folder = Path(packages_folder)
+        self.aliases_folder = aliases_folder and Path(aliases_folder)
         self.nexus_api_key = nexus_api_key
 
         self.nexus_api = None
@@ -229,6 +232,7 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
 
     def blob_selection_changed(self):
         self.current_selected_blob = self.BlobsList.currentItem().text()
+        self.render_blob_contents()
         self.render_sources()
 
     def source_selection_changed(self):
@@ -404,7 +408,9 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
                 item.setText(f'{getattr(file_, header)}')
                 item.setData(Qt.UserRole, file_)
                 self.NexusAvailableFiles.setItem(i, j, item)
-            if file_.file_id == selected_source.file_id:
+            if (selected_source and
+                    isinstance(selected_source, NexusPackageSource) and
+                    selected_source.file_id == file_.file_id):
                 self.NexusAvailableFiles.setCurrentCell(i, 0)
 
         self.NexusAvailableFiles.resizeColumnsToContents()
@@ -422,12 +428,45 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
         clicked_item = self.BlobsList.itemAt(event)
         if clicked_item:
             blob_id = clicked_item.text()
+            menu = QMenu(self.BlobsList)
+
+            # preview fomod (if blob is fomod)
             if self.manager.meta(blob_id)['fomod_root']:
-                menu = QMenu(self.BlobsList)
                 action_rename = menu.addAction('Preview Fomod')
                 action_rename.triggered.connect(
                     lambda: self.preview_fomod(clicked_item))
-                menu.popup(QCursor.pos())
+
+            # unassociate with alias
+            action_unassociate = menu.addAction('Unassociate')
+            action_unassociate.triggered.connect(
+                lambda: self.unassociate_blob(clicked_item))
+
+            menu.popup(QCursor.pos())
+
+    def render_blob_contents(self):
+        blob_item = self.BlobsList.currentItem()
+        if blob_item:
+            blob_id = blob_item.text()
+            file_list = self.manager.meta(blob_id)['filelist']
+            self.TarballDetailsText.setText(os.linesep.join(file_list))
+
+    def unassociate_blob(self, blob_item):
+        alias_item = self.AliasesList.currentItem()
+        if alias_item:
+            alias = alias_item.text()
+            blob_id = blob_item.text()
+            confirmed = QMessageBox.question(
+                self,
+                'Are You Sure?',
+                f'Are you sure you want to unassociate {blob_id} with alias '
+                f'{alias}? Note that this will also delete the alias itself '
+                f'if it results in an empty alias that is not associated with '
+                f'anything else.',
+                QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes
+
+            if confirmed:
+                self.manager.aliases.remove(alias, blob_id)
+                self.render_aliases()
 
     def preview_fomod(self, blob_item):
         blob_id = blob_item.text()
@@ -487,6 +526,8 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
                     '')
             self.manager.add_source(alias, package_source, file_)
             self.render_aliases()
+            for item in self.AliasesList.findItems(alias, Qt.MatchExactly):
+                self.AliasesList.setCurrentItem(item)
 
     def load_generic_file(self, generic_file, post_action=None):
         print(f'loaded {generic_file}')
@@ -576,7 +617,8 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
         self.nexus_api = Nexus(self.nexus_api_key)
 
     def refresh_manager(self):
-        self.manager = SkybuildPackageManager(self.project_folder)
+        self.manager = SkybuildPackageManager(
+            self.packages_folder, aliases_folder=self.aliases_folder)
 
     def run(self):
         print('Running App')
