@@ -184,7 +184,7 @@ class SkybuildAliases:
                 if not data[alias]:
                     data.pop(alias)
 
-    def get_selections(self):
+    def get_selections(self, permit_unselected=False):
         if not self.selection_file.exists():
             self.selection_file.write_text(yaml_dump({}))
 
@@ -198,15 +198,19 @@ class SkybuildAliases:
                     elif len(blob_ids) == 1:
                         selected = blob_ids[0]
                     if not selected:
-                        raise Exception(
-                            f'alias {alias} does not have a valid selection')
+                        if permit_unselected:
+                            selected = None
+                        else:
+                            raise Exception(
+                                f'alias {alias} does not have a valid '
+                                f'selection')
                     all_selections[alias] = selected
         return all_selections
 
     def get_selection(self, alias):
         with self.session(self.selection_file, read_only=True) as selection:
             if alias in selection:
-                return selection['alias']
+                return selection[alias]
         with self.session(self.aliases_file, read_only=True) as aliases:
             if alias in aliases:
                 blob_ids = aliases[alias]

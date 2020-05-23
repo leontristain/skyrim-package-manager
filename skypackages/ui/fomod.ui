@@ -36,7 +36,7 @@
            </property>
            <widget class="QWidget" name="SelectedFilesTab">
             <attribute name="title">
-             <string>Selected Files</string>
+             <string>Installer State</string>
             </attribute>
             <layout class="QGridLayout" name="gridLayout_7">
              <item row="0" column="0">
@@ -131,7 +131,7 @@
                 </item>
                </layout>
               </widget>
-              <widget class="QWidget" name="">
+              <widget class="QWidget" name="layoutWidget">
                <layout class="QVBoxLayout" name="verticalLayout_2">
                 <item>
                  <widget class="QSplitter" name="splitter">

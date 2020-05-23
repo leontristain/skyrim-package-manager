@@ -305,6 +305,11 @@ class FomodInstallerGui(QtWidgets.QMainWindow):
 
     def render_files(self):
         lines = []
+        lines.append('flags:')
+        for key, value in self.installer.flags().items():
+            lines.append(f'{repr(key)}: {repr(value)}')
+        lines.append('')
+        lines.append('files:')
         for src, dest in self.installer.files().items():
             lines.append(f'{src}')
             lines.append(f'    -> {dest}')

@@ -286,6 +286,7 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
         self.BlobsList.clear()
         alias_item = self.AliasesList.currentItem()
         if alias_item:
+            selected = self.manager.aliases.get_selection(alias_item.text())
             blob_ids = alias_item.data(Qt.UserRole)['blob_ids']
             for blob_id in blob_ids:
                 list_item = QListWidgetItem()
@@ -294,8 +295,12 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
                     list_item.setIcon(self.icon('fomod'))
                 else:
                     list_item.setIcon(self.icon('archive'))
+                if blob_id == selected:
+                    list_item.setBackground(QColor('green'))
                 self.BlobsList.addItem(list_item)
                 if self.current_selected_blob == blob_id:
+                    self.BlobsList.setCurrentItem(list_item)
+                if not self.current_selected_blob and blob_id == selected:
                     self.BlobsList.setCurrentItem(list_item)
             if blob_ids and not self.BlobsList.currentItem():
                 self.BlobsList.setCurrentRow(0)
@@ -441,6 +446,10 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
             action_unassociate.triggered.connect(
                 lambda: self.unassociate_blob(clicked_item))
 
+            action_select = menu.addAction('Use This Source')
+            action_select.triggered.connect(
+                lambda: self.select_blob(clicked_item))
+
             menu.popup(QCursor.pos())
 
     def render_blob_contents(self):
@@ -467,6 +476,14 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
             if confirmed:
                 self.manager.aliases.remove(alias, blob_id)
                 self.render_aliases()
+
+    def select_blob(self, blob_item):
+        alias_item = self.AliasesList.currentItem()
+        if alias_item:
+            alias = alias_item.text()
+            blob_id = blob_item.text()
+        self.manager.aliases.set_selection(alias, blob_id)
+        self.render_blobs()
 
     def preview_fomod(self, blob_item):
         blob_id = blob_item.text()
