@@ -336,11 +336,9 @@ class FomodInstallerGui(QtWidgets.QMainWindow):
 
     def render_option_hover(self, option_item):
         option = option_item.data()
-
-        pixmap = QPixmap(str(self.root / option.image))
-        self.FomodPhotoLabel.setPhoto(pixmap)
-        self.FomodPhotoLabel.setText('')
-
+        if option.image:
+            self.FomodPhotoLabel.setPhoto(str(self.root / option.image))
+            self.FomodPhotoLabel.setText('')
         self.FomodInstructions.setText(option.description)
 
     def run(self):

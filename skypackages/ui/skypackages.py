@@ -377,8 +377,9 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
         # sort the filelist
         file_list = sorted(
             file_list,
-            key=lambda item: (
-                '' if item.category_name == 'MAIN' else item.category_name,
+            key=lambda item: ({
+                'MAIN': '0',
+                'OPTIONAL': '1'}.get(item.category_name, item.category_name),
                 0 if item.is_primary else 1,
                 item.name
             ))
