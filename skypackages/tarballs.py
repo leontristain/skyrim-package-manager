@@ -26,6 +26,8 @@ class Tarball:
 
     @cached_property
     def contents(self):
+        # this command can help us output the contents of the tarball with
+        # 7z.exe in a way that's programmatically parsable
         command = [
             self.bin_7z,
             'l',  # list contents
@@ -34,6 +36,7 @@ class Tarball:
             str(self.tarball)  # operate on this file
         ]
 
+        # run the command
         p = subprocess.Popen(
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
@@ -43,8 +46,23 @@ class Tarball:
                 f'command `{command_str}; returncode={p.returncode}; '
                 f'stdout: `{stdout}`; stderr: `{stderr}`')
 
+        # decode the stdout output into unicode
+        encodings_to_attempt = ['ansi', 'utf-8']
+        for encoding in encodings_to_attempt:
+            try:
+                stdout = stdout.decode(encoding)
+            except UnicodeDecodeError:
+                pass
+            else:
+                break
+        else:
+            raise Tarball7zOperationError(
+                f'Could not decode file list (7z.exe process output) '
+                f'using any of {encodings_to_attempt}')
+
+        # further process the output text into an actual list of file paths
         files_info_data = (
-            stdout.decode('utf-8').split(f'{os.linesep}{os.linesep}'))
+            stdout.split(f'{os.linesep}{os.linesep}'))
         files_info_data = [
             info_data.strip() for info_data in files_info_data
             if info_data.strip()]

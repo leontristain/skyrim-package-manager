@@ -379,7 +379,8 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
             file_list,
             key=lambda item: ({
                 'MAIN': '0',
-                'OPTIONAL': '1'}.get(item.category_name, item.category_name),
+                'UPDATE': '1',
+                'OPTIONAL': '2'}.get(item.category_name, item.category_name),
                 0 if item.is_primary else 1,
                 item.name
             ))
