@@ -25,6 +25,12 @@ class Tarball:
                 return path.parent.parent
 
     @cached_property
+    def fomod_file(self):
+        for path in sorted(self.contents, key=lambda p: len(str(p))):
+            if path.name.lower().endswith('.fomod'):
+                return path
+
+    @cached_property
     def contents(self):
         # this command can help us output the contents of the tarball with
         # 7z.exe in a way that's programmatically parsable
@@ -76,7 +82,7 @@ class Tarball:
 
         return {key: value for key, value in sorted(file_infos.items())}
 
-    def extract(self, dest):
+    def extract(self, dest, as_fomod=False):
         command = [
             self.bin_7z,
             'x', str(self.tarball),  # extract this file
@@ -92,6 +98,28 @@ class Tarball:
             raise Tarball7zOperationError(
                 f'command `{command_str}; returncode={p.returncode}; '
                 f'stdout: `{stdout}`; stderr: `{stderr}`')
+
+        if as_fomod:
+            for item in dest.glob('*.fomod'):
+                # further extract the fomod archive
+                command = [
+                    self.bin_7z,
+                    'x', str(item),  # extract this file
+                    f'-o{dest}',  # to this destination
+                    '-aoa'  # overwrite all existing files without prompt
+                ]
+
+                p = subprocess.Popen(
+                    command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                stdout, stderr = p.communicate()
+                if p.returncode != 0:
+                    command_str = ' '.join(command)
+                    raise Tarball7zOperationError(
+                        f'command `{command_str}; returncode={p.returncode}; '
+                        f'stdout: `{stdout}`; stderr: `{stderr}`')
+
+                # delete the .fomod after
+                item.unlink()
 
     @staticmethod
     def parse_file_info_data(file_info_data):

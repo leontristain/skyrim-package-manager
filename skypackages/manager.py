@@ -95,9 +95,9 @@ class SkybuildPackageManager:
     def fetch_tarball(self, blob_id):
         return Tarball(self.paths.blobs / blob_id)
 
-    def meta(self, blob_id):
+    def meta(self, blob_id, refresh=False):
         meta_file = self.paths.meta / f'{blob_id}.yaml'
-        if meta_file.exists():
+        if meta_file.exists() and not refresh:
             meta = yaml_load(meta_file.read_text())
         else:
             blob = self.paths.blobs / blob_id
@@ -105,7 +105,8 @@ class SkybuildPackageManager:
             meta = {
                 'filelist': [str(key) for key in tarball.contents.keys()],
                 'fomod_root': (
-                    str(tarball.fomod_root) if tarball.fomod_root else None)
+                    str(tarball.fomod_root) if tarball.fomod_root else
+                    str(tarball.fomod_file) if tarball.fomod_file else None)
             }
             meta_file.write_text(yaml_dump(meta))
         return meta

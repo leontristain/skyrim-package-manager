@@ -443,14 +443,25 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
                 action_rename.triggered.connect(
                     lambda: self.preview_fomod(clicked_item))
 
+            # use this source
+            action_select = menu.addAction('Use This Source')
+            action_select.triggered.connect(
+                lambda: self.select_blob(clicked_item))
+
+            # open file
+            action_open = menu.addAction('Open File')
+            action_open.triggered.connect(
+                lambda: self.open_blob(clicked_item))
+
+            # rebuild meta
+            action_rebuild = menu.addAction('Rebuild Metadata')
+            action_rebuild.triggered.connect(
+                lambda: self.rebuild_blob_metadata(clicked_item))
+
             # unassociate with alias
             action_unassociate = menu.addAction('Unassociate')
             action_unassociate.triggered.connect(
                 lambda: self.unassociate_blob(clicked_item))
-
-            action_select = menu.addAction('Use This Source')
-            action_select.triggered.connect(
-                lambda: self.select_blob(clicked_item))
 
             menu.popup(QCursor.pos())
 
@@ -487,13 +498,26 @@ class SkyPackagesGui(QtWidgets.QMainWindow):
         self.manager.aliases.set_selection(alias, blob_id)
         self.render_blobs()
 
+    def open_blob(self, blob_item):
+        blob_id = blob_item.text()
+        os.startfile(self.manager.fetch_tarball(blob_id).tarball)
+
+    def rebuild_blob_metadata(self, blob_item):
+        blob_id = blob_item.text()
+        self.manager.meta(blob_id, refresh=True)
+        self.render_blobs()
+
     def preview_fomod(self, blob_item):
         blob_id = blob_item.text()
         fomod_root = self.manager.meta(blob_id)['fomod_root']
         assert fomod_root, f'no fomod_root for {blob_id}'
 
+        if fomod_root.endswith('.fomod'):
+            fomod_root = ''
+
         self.manager.clean_tmp()
-        self.manager.fetch_tarball(blob_id).extract(self.manager.paths.tmp)
+        self.manager.fetch_tarball(blob_id).extract(
+            self.manager.paths.tmp, as_fomod=True)
         fomod_root = self.manager.paths.tmp / fomod_root
         subprocess.Popen([
             f'{sys.argv[0]}', 'fomod', f'{fomod_root}'])
