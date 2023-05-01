@@ -1,5 +1,5 @@
 click==7.0
-flask==1.0.3
+flask==2.3.2
 PyQt5==5.13.0
 PyQt5-sip==12.7.0
 pyqt5-tools==5.13.0.1.5
